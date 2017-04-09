@@ -46,20 +46,23 @@ public class BookAdapter extends ArrayAdapter<Book> {
 
         final Book currentBook = getItem(position);
 
-        viewHolder.bookImage.setImageBitmap(null);
-
-        new DownloadImageTask(viewHolder.bookImage).execute(currentBook.getSmallThumbnailUrl());
+        new DownloadImageTask(viewHolder.bookImage).execute(currentBook.getThumbnailUrl());
 
         viewHolder.bookTitle.setText(currentBook.getTitle());
 
         viewHolder.bookAuthor.setText(currentBook.getAuthor());
 
-        viewHolder.bookPublishDate.setText(currentBook.getPublishedDate());
+        viewHolder.bookPublishDate.setVisibility(View.VISIBLE);
+        if (currentBook.getPublishedDate() == null) {
+            viewHolder.bookPublishDate.setVisibility(View.INVISIBLE);
+        } else {
+            viewHolder.bookPublishDate.setText(currentBook.getPublishedDate());
+        }
 
         return convertView;
     }
 
-    static class ViewHolder {
+    private static class ViewHolder {
         ImageView bookImage;
         TextView bookTitle;
         TextView bookAuthor;
@@ -90,6 +93,5 @@ public class BookAdapter extends ArrayAdapter<Book> {
             bmImage.setImageBitmap(result);
         }
     }
-
 
 }

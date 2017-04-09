@@ -149,8 +149,14 @@ public final class QueryUtils {
                 JSONObject bookItem = bookItems.getJSONObject(i);
                 JSONObject bookItemVolumeInfo = bookItem.getJSONObject("volumeInfo");
                 String bookTitle = bookItemVolumeInfo.getString("title");
-                String bookAuthor = bookItemVolumeInfo.getJSONArray("authors").getString(0);
-                String bookPublishDate = bookItemVolumeInfo.getString("publishedDate");
+                String bookAuthor = "Unknown author";
+                if (bookItemVolumeInfo.has("authors")) {
+                    bookAuthor = bookItemVolumeInfo.getJSONArray("authors").getString(0);
+                }
+                String bookPublishDate = null;
+                if (bookItemVolumeInfo.has("publishedDate")) {
+                    bookPublishDate = bookItemVolumeInfo.getString("publishedDate");
+                }
                 String bookPreviewLink = bookItemVolumeInfo.getString("previewLink");
                 String bookThumbnailUrl = bookItemVolumeInfo.getJSONObject("imageLinks").getString("thumbnail");
                 books.add(new Book(bookThumbnailUrl, bookTitle, bookAuthor, bookPublishDate, bookPreviewLink));

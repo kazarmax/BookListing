@@ -1,19 +1,16 @@
 package com.example.android.booklisting;
 
-import android.app.LoaderManager;
-import android.app.LoaderManager.LoaderCallbacks;
 import android.content.Context;
 import android.content.Intent;
-import android.content.Loader;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
@@ -22,22 +19,20 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity
-        implements LoaderCallbacks<List<Book>> {
+public class MainActivity extends AppCompatActivity {
 
-    /** URL for earthquake data from the USGS dataset */
-    private String requestUrl;
+    /** URL base for books data from the Google Books API */
+    private static final String REQUEST_URL_BASE =
+            "https://www.googleapis.com/books/v1/volumes?maxResults=10&q=";
+
+    /** Object for storing a list of Books loaded using Google Books API */
+    private ArrayList<Book> bookList;
 
     /** Adapter for the list of books */
     private BookAdapter mBookAdapter;
 
+    /** Progress bar to be shown while books are being loaded from server*/
     private View mLoadProgressBar;
-
-    /**
-     * Constant value for the book loader ID. We can choose any integer.
-     * This really only comes into play if you're using multiple loaders.
-     */
-    private static final int BOOK_LOADER_ID = 1;
 
     private static final String LOG_TAG = MainActivity.class.getName();
 
@@ -46,8 +41,11 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Log.v(LOG_TAG, "OnCreate method invoked");
 
         // Find a reference to the {@link ListView} in the layout
         ListView bookListView = (ListView) findViewById(R.id.list);
@@ -57,7 +55,15 @@ public class MainActivity extends AppCompatActivity
         mEmptyStateTextView = (TextView) findViewById(R.id.empty_list_view);
         bookListView.setEmptyView(mEmptyStateTextView);
 
-        mBookAdapter = new BookAdapter(this, new ArrayList<Book>());
+        if (getLastCustomNonConfigurationInstance() == null) {
+            Log.v(LOG_TAG, "Inside If condition = (getLastCustomNonConfigurationInstance() == null)");
+            bookList = new ArrayList<Book>();
+        } else {
+            Log.v(LOG_TAG, "Inside else condition = (getLastCustomNonConfigurationInstance() == null)");
+            bookList = (ArrayList<Book>) getLastCustomNonConfigurationInstance();
+        }
+
+        mBookAdapter = new BookAdapter(this, bookList);
         bookListView.setAdapter(mBookAdapter);
 
         bookListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -79,27 +85,25 @@ public class MainActivity extends AppCompatActivity
 
         // If there is a network connection, fetch data
         if (hasInternetConnection()) {
-            Log.v(LOG_TAG, "In onCreate method - getLoaderManager().initLoader invoked");
-            // Get a reference to the LoaderManager, in order to interact with loaders.
+            Log.v(LOG_TAG, "In hasInternetConnection() IF block");
 
-            Button searchButton = (Button) findViewById(R.id.book_search_btn);
-            searchButton.setOnClickListener(new View.OnClickListener() {
+            SearchView searchView = (SearchView) findViewById(R.id.search_view);
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                 @Override
-                public void onClick(View view) {
-
-                    SearchView searchView = (SearchView) findViewById(R.id.search_view);
-                    if (searchView.getQuery() != "") {
-                        requestUrl = "https://www.googleapis.com/books/v1/volumes?maxResults=10&q="
-                                + searchView.getQuery();
+                public boolean onQueryTextSubmit(String query) {
+                    Log.v(LOG_TAG, "Inside searchButton.setOnClickListener");
+                    if (query != "" || query != null) {
+                        Log.v(LOG_TAG, "Inside searchView.getQuery IF block");
+                        String requestUrl = REQUEST_URL_BASE + query;
+                        mLoadProgressBar.setVisibility(View.VISIBLE);
+                        new BookLoadTask().execute(requestUrl);
                     }
+                    return false;
+                }
 
-                    mLoadProgressBar.setVisibility(View.VISIBLE);
-                    LoaderManager loaderManager = getLoaderManager();
-
-                    // Initialize the loader. Pass in the int ID constant defined above and pass in null for
-                    // the bundle. Pass in this activity for the LoaderCallbacks parameter (which is valid
-                    // because this activity implements the LoaderCallbacks interface).
-                    loaderManager.initLoader(BOOK_LOADER_ID, null, MainActivity.this);
+                @Override
+                public boolean onQueryTextChange(String s) {
+                    return false;
                 }
             });
 
@@ -113,39 +117,41 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public Loader<List<Book>> onCreateLoader(int id, Bundle args) {
-        Log.v(LOG_TAG, "onCreateLoader callback triggered");
-        return new BookLoader(this, requestUrl);
-    }
+    private class BookLoadTask extends AsyncTask<String, Void, List<Book>> {
 
-    @Override
-    public void onLoadFinished(Loader<List<Book>> loader, List<Book> books) {
-        Log.v(LOG_TAG, "onLoadFinished callback triggered");
+        protected List<Book> doInBackground(String... urls) {
+            // Don't perform the request if there are no URLs, or the first URL is null.
+            if (urls[0] == null || urls[0] == "") {
+                return null;
+            }
+            Log.v(LOG_TAG, "Inside BookLoadTask - doInBackground");
+            bookList.clear();
+            bookList = QueryUtils.fetchBooks(urls[0]);
+            return bookList;
+        }
 
-        // Hide loading indicator because the data has been loaded
-        mLoadProgressBar.setVisibility(ProgressBar.GONE);
+        protected void onPostExecute(List<Book> books) {
 
-        // Set empty state text to display "No books found."
-        mEmptyStateTextView.setText(R.string.no_books_found);
+            Log.v(LOG_TAG, "Inside BookLoadTask - onPostExecute");
+            // Hide loading indicator because the data has been loaded
+            mLoadProgressBar.setVisibility(ProgressBar.GONE);
 
-        // Clear the adapter of previous book data
-        mBookAdapter.clear();
+            // Set empty state text to display "No books found."
+            mEmptyStateTextView.setText(R.string.no_books_found);
 
-        // If there is a valid list of {@link Book}s, then add them to the adapter's
-        // data set. This will trigger the ListView to update.
-        if (books != null && !books.isEmpty()) {
-            mBookAdapter.addAll(books);
+            // Clear the adapter of previous book data
+            mBookAdapter.clear();
+
+            // If there is a valid list of {@link Book}s, then add them to the adapter's
+            // data set. This will trigger the ListView to update.
+            if (books != null && !books.isEmpty()) {
+                mBookAdapter.addAll(books);
+            }
         }
     }
 
-    @Override
-    public void onLoaderReset(Loader<List<Book>> loader) {
-        Log.v(LOG_TAG, "onLoaderReset callback triggered");
-        mBookAdapter.clear();
-    }
-
     private boolean hasInternetConnection() {
+        Log.v(LOG_TAG, "Inside hasInternetConnection() method");
         //Determine if there is a network connection to the Internet
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         Log.v(LOG_TAG, "ConnectivityManager object = " + cm.toString());
@@ -153,4 +159,11 @@ public class MainActivity extends AppCompatActivity
         NetworkInfo networkInfo = cm.getActiveNetworkInfo();
         return networkInfo != null && networkInfo.isConnected();
     }
+
+    @Override
+    public Object onRetainCustomNonConfigurationInstance() {
+        Log.v(LOG_TAG, "onRetainCustomNonConfigurationInstance() method");
+        return bookList;
+    }
+
 }

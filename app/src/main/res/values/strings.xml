@@ -1,7 +1,6 @@
 <resources>
-    <string name="app_name">BookListing</string>
-    <string name="no_books_found">No books found.</string>
+    <string name="app_name">Book Finder</string>
+    <string name="no_books_found">No books found on this topic. Try using different search keywords.</string>
     <string name="no_internet">No connection to the Internet.</string>
-    <string name="search_button">Search</string>
     <string name="search_view_hint">Input book category here</string>
 </resources>

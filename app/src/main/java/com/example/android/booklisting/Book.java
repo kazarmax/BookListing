@@ -2,9 +2,7 @@ package com.example.android.booklisting;
 
 public class Book {
 
-    //Fields to consider: canonicalVolumeLink
-
-    private final String mSmallThumbnailUrl;
+    private final String mThumbnailUrl;
 
     private final String mTitle;
 
@@ -14,16 +12,17 @@ public class Book {
 
     private final String mPreviewLink;
 
-    public Book(String smallThumbnailUrl, String title, String author, String publishedDate, String previewLink) {
-        this.mSmallThumbnailUrl = smallThumbnailUrl;
+    public Book(String thumbnailUrl, String title, String author, String publishedDate,
+                String previewLink) {
+        this.mThumbnailUrl = thumbnailUrl;
         this.mTitle = title;
         this.mAuthor = author;
         this.mPublishedDate = publishedDate;
         this.mPreviewLink = previewLink;
     }
 
-    public String getSmallThumbnailUrl() {
-        return mSmallThumbnailUrl;
+    public String getThumbnailUrl() {
+        return mThumbnailUrl;
     }
 
     public String getTitle() {
