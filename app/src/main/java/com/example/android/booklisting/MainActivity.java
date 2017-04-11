@@ -8,7 +8,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     /** Adapter for the list of books */
     private BookAdapter mBookAdapter;
 
-    /** Progress bar to be shown while books are being loaded from server*/
+    /** Progress bar to be shown while books are being loaded from server */
     private View mLoadProgressBar;
 
     private static final String LOG_TAG = MainActivity.class.getName();
@@ -45,27 +45,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Log.v(LOG_TAG, "OnCreate method invoked");
-
-        // Find a reference to the {@link ListView} in the layout
         ListView bookListView = (ListView) findViewById(R.id.list);
-
         mLoadProgressBar = findViewById(R.id.loading_spinner);
-
         mEmptyStateTextView = (TextView) findViewById(R.id.empty_list_view);
         bookListView.setEmptyView(mEmptyStateTextView);
 
+        // Load previously saved data of loaded books
         if (getLastCustomNonConfigurationInstance() == null) {
-            Log.v(LOG_TAG, "Inside If condition = (getLastCustomNonConfigurationInstance() == null)");
             bookList = new ArrayList<Book>();
         } else {
-            Log.v(LOG_TAG, "Inside else condition = (getLastCustomNonConfigurationInstance() == null)");
             bookList = (ArrayList<Book>) getLastCustomNonConfigurationInstance();
         }
 
+        // Create custom ArrayAdapter and link it to the ListView
         mBookAdapter = new BookAdapter(this, bookList);
         bookListView.setAdapter(mBookAdapter);
 
+        // Set OnCLickListener to the ListView to be able to open a link to view info about selected book
         bookListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
@@ -85,17 +81,19 @@ public class MainActivity extends AppCompatActivity {
 
         // If there is a network connection, fetch data
         if (hasInternetConnection()) {
-            Log.v(LOG_TAG, "In hasInternetConnection() IF block");
-
             SearchView searchView = (SearchView) findViewById(R.id.search_view);
+
+            // Set listener to the SearchView to process search query inputs from users
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                 @Override
                 public boolean onQueryTextSubmit(String query) {
-                    Log.v(LOG_TAG, "Inside searchButton.setOnClickListener");
-                    if (query != "" || query != null) {
-                        Log.v(LOG_TAG, "Inside searchView.getQuery IF block");
+                    // Perform request only if search query is not empty (null or 0-length)
+                    if (!TextUtils.isEmpty(query)) {
+                        // Build final request URL by adding REQUEST_URL_BASE and query
                         String requestUrl = REQUEST_URL_BASE + query;
+                        // Start displaying progress bar
                         mLoadProgressBar.setVisibility(View.VISIBLE);
+                        // Create AsyncTask to start loading books
                         new BookLoadTask().execute(requestUrl);
                     }
                     return false;
@@ -117,14 +115,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * AsyncTask class for loading books data in background thread
+     */
     private class BookLoadTask extends AsyncTask<String, Void, List<Book>> {
 
         protected List<Book> doInBackground(String... urls) {
+
             // Don't perform the request if there are no URLs, or the first URL is null.
-            if (urls[0] == null || urls[0] == "") {
+            if (TextUtils.isEmpty(urls[0])) {
                 return null;
             }
-            Log.v(LOG_TAG, "Inside BookLoadTask - doInBackground");
+            // Clear list of books from previously loaded data and fill with the new data
             bookList.clear();
             bookList = QueryUtils.fetchBooks(urls[0]);
             return bookList;
@@ -132,7 +134,6 @@ public class MainActivity extends AppCompatActivity {
 
         protected void onPostExecute(List<Book> books) {
 
-            Log.v(LOG_TAG, "Inside BookLoadTask - onPostExecute");
             // Hide loading indicator because the data has been loaded
             mLoadProgressBar.setVisibility(ProgressBar.GONE);
 
@@ -150,19 +151,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Internal method that checks if there is a network connection on the user's phone
     private boolean hasInternetConnection() {
-        Log.v(LOG_TAG, "Inside hasInternetConnection() method");
+
         //Determine if there is a network connection to the Internet
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        Log.v(LOG_TAG, "ConnectivityManager object = " + cm.toString());
-
         NetworkInfo networkInfo = cm.getActiveNetworkInfo();
         return networkInfo != null && networkInfo.isConnected();
     }
 
+    // Save loaded books data to show it again when user rotates screen
     @Override
     public Object onRetainCustomNonConfigurationInstance() {
-        Log.v(LOG_TAG, "onRetainCustomNonConfigurationInstance() method");
         return bookList;
     }
 

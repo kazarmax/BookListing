@@ -41,8 +41,6 @@ public final class QueryUtils {
      */
     public static ArrayList<Book> fetchBooks(String requestUrl) {
 
-        Log.v(LOG_TAG, "fetchBooks() method invoked");
-
         // Create URL object
         URL url = createUrl(requestUrl);
 
@@ -56,6 +54,7 @@ public final class QueryUtils {
 
         ArrayList<Book> books = extractBooksFromJson(jsonResponse);
 
+        // Download image and set it to the Book object
         for (Book book : books) {
             book.setBookImageBitmap(downloadBookImage(book.getThumbnailUrl()));
         }
@@ -183,8 +182,10 @@ public final class QueryUtils {
         return books;
     }
 
+    // Download book images
     private static Bitmap downloadBookImage(String bookImageUrl) {
-        if (bookImageUrl == null || bookImageUrl.equals("") || bookImageUrl.length() == 0) {
+        // If the image load url is empty or null, then return early.
+        if (TextUtils.isEmpty(bookImageUrl)) {
             return null;
         }
         Bitmap image = null;
