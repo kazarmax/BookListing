@@ -1,5 +1,7 @@
 package com.example.android.booklisting;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -23,7 +25,7 @@ import java.util.ArrayList;
 public final class QueryUtils {
 
     /** Tag for the log messages */
-    public static final String LOG_TAG = QueryUtils.class.getSimpleName();
+    private static final String LOG_TAG = QueryUtils.class.getSimpleName();
 
     /**
      * Create a private constructor because no one should ever create a {@link QueryUtils} object.
@@ -53,6 +55,10 @@ public final class QueryUtils {
         }
 
         ArrayList<Book> books = extractBooksFromJson(jsonResponse);
+
+        for (Book book : books) {
+            book.setBookImageBitmap(downloadBookImage(book.getThumbnailUrl()));
+        }
 
         return books;
     }
@@ -149,7 +155,7 @@ public final class QueryUtils {
                 JSONObject bookItem = bookItems.getJSONObject(i);
                 JSONObject bookItemVolumeInfo = bookItem.getJSONObject("volumeInfo");
                 String bookTitle = bookItemVolumeInfo.getString("title");
-                String bookAuthor = "Unknown author";
+                String bookAuthor = null;
                 if (bookItemVolumeInfo.has("authors")) {
                     bookAuthor = bookItemVolumeInfo.getJSONArray("authors").getString(0);
                 }
@@ -158,8 +164,12 @@ public final class QueryUtils {
                     bookPublishDate = bookItemVolumeInfo.getString("publishedDate");
                 }
                 String bookPreviewLink = bookItemVolumeInfo.getString("previewLink");
-                String bookThumbnailUrl = bookItemVolumeInfo.getJSONObject("imageLinks").getString("thumbnail");
-                books.add(new Book(bookThumbnailUrl, bookTitle, bookAuthor, bookPublishDate, bookPreviewLink));
+
+                String bookThumbnailUrl = null;
+                if (bookItemVolumeInfo.has("imageLinks")) {
+                    bookThumbnailUrl = bookItemVolumeInfo.getJSONObject("imageLinks").getString("thumbnail");
+                }
+                books.add(new Book(bookThumbnailUrl, bookTitle, bookAuthor, bookPublishDate, bookPreviewLink, null));
             }
 
         } catch (JSONException e) {
@@ -171,6 +181,21 @@ public final class QueryUtils {
 
         // Return the list of books
         return books;
+    }
+
+    private static Bitmap downloadBookImage(String bookImageUrl) {
+        if (bookImageUrl == null || bookImageUrl.equals("") || bookImageUrl.length() == 0) {
+            return null;
+        }
+        Bitmap image = null;
+        try {
+            InputStream in = new java.net.URL(bookImageUrl).openStream();
+            image = BitmapFactory.decodeStream(in);
+        } catch (Exception e) {
+            Log.e("Error", e.getMessage());
+            e.printStackTrace();
+        }
+        return image;
     }
 
 }

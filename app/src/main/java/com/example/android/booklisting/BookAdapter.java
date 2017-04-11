@@ -1,11 +1,7 @@
 package com.example.android.booklisting;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,12 +9,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.io.InputStream;
 import java.util.List;
 
-public class BookAdapter extends ArrayAdapter<Book> {
+class BookAdapter extends ArrayAdapter<Book> {
 
-    public BookAdapter(Activity context, List<Book> books) {
+    private static final int NO_BOOK_IMAGE_RES_ID = R.drawable.no_book_pic1;
+
+    BookAdapter(Activity context, List<Book> books) {
         super(context, 0, books);
     }
 
@@ -46,18 +43,21 @@ public class BookAdapter extends ArrayAdapter<Book> {
 
         final Book currentBook = getItem(position);
 
-        new DownloadImageTask(viewHolder.bookImage).execute(currentBook.getThumbnailUrl());
+        if (currentBook.getBookImageBitmap() == null) {
+            viewHolder.bookImage.setImageResource(NO_BOOK_IMAGE_RES_ID);
+        } else {
+            viewHolder.bookImage.setImageBitmap(currentBook.getBookImageBitmap());
+        }
 
         viewHolder.bookTitle.setText(currentBook.getTitle());
 
-        viewHolder.bookAuthor.setText(currentBook.getAuthor());
-
-        viewHolder.bookPublishDate.setVisibility(View.VISIBLE);
-        if (currentBook.getPublishedDate() == null) {
-            viewHolder.bookPublishDate.setVisibility(View.INVISIBLE);
+        if (currentBook.getAuthor() == null) {
+            viewHolder.bookAuthor.setText(R.string.no_book_author);
         } else {
-            viewHolder.bookPublishDate.setText(currentBook.getPublishedDate());
+            viewHolder.bookAuthor.setText(currentBook.getAuthor());
         }
+
+        viewHolder.bookPublishDate.setText(currentBook.getPublishedDate());
 
         return convertView;
     }
@@ -67,31 +67,6 @@ public class BookAdapter extends ArrayAdapter<Book> {
         TextView bookTitle;
         TextView bookAuthor;
         TextView bookPublishDate;
-    }
-
-    private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
-        ImageView bmImage;
-
-        private DownloadImageTask(ImageView bmImage) {
-            this.bmImage = bmImage;
-        }
-
-        protected Bitmap doInBackground(String... urls) {
-            String imageUrl = urls[0];
-            Bitmap image = null;
-            try {
-                InputStream in = new java.net.URL(imageUrl).openStream();
-                image = BitmapFactory.decodeStream(in);
-            } catch (Exception e) {
-                Log.e("Error", e.getMessage());
-                e.printStackTrace();
-            }
-            return image;
-        }
-
-        protected void onPostExecute(Bitmap result) {
-            bmImage.setImageBitmap(result);
-        }
     }
 
 }
