@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                 // Convert the String URL into a URI object (to pass into the Intent constructor)
                 Uri bookUri = Uri.parse(currentBook.getPreviewLink());
 
-                // Create a new intent to view the earthquake URI
+                // Create a new intent to view the book URI
                 Intent intent = new Intent(Intent.ACTION_VIEW, bookUri);
 
                 // Send the intent to launch a new activity
