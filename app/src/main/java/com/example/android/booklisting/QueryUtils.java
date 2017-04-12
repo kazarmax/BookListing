@@ -27,6 +27,9 @@ public final class QueryUtils {
     /** Tag for the log messages */
     private static final String LOG_TAG = QueryUtils.class.getSimpleName();
 
+    /** Delimiter for book authors if the book has more than one author */
+    private static final String BOOK_AUTHORS_DELIMITER = ", ";
+
     /**
      * Create a private constructor because no one should ever create a {@link QueryUtils} object.
      * This class is only meant to hold static variables and methods, which can be accessed
@@ -154,9 +157,16 @@ public final class QueryUtils {
                 JSONObject bookItem = bookItems.getJSONObject(i);
                 JSONObject bookItemVolumeInfo = bookItem.getJSONObject("volumeInfo");
                 String bookTitle = bookItemVolumeInfo.getString("title");
-                String bookAuthor = null;
-                if (bookItemVolumeInfo.has("authors")) {
-                    bookAuthor = bookItemVolumeInfo.getJSONArray("authors").getString(0);
+                String bookAuthors = null;
+                JSONArray bookAuthorsArray = bookItemVolumeInfo.optJSONArray("authors");
+                if (bookAuthorsArray != null) {
+                    bookAuthors = "";
+                    for (int j = 0; j < bookAuthorsArray.length(); j++) {
+                        bookAuthors += bookAuthorsArray.getString(j);
+                        if (j < (bookAuthorsArray.length() - 1)) {
+                            bookAuthors += BOOK_AUTHORS_DELIMITER;
+                        }
+                    }
                 }
                 String bookPublishDate = null;
                 if (bookItemVolumeInfo.has("publishedDate")) {
@@ -168,7 +178,7 @@ public final class QueryUtils {
                 if (bookItemVolumeInfo.has("imageLinks")) {
                     bookThumbnailUrl = bookItemVolumeInfo.getJSONObject("imageLinks").getString("thumbnail");
                 }
-                books.add(new Book(bookThumbnailUrl, bookTitle, bookAuthor, bookPublishDate, bookPreviewLink, null));
+                books.add(new Book(bookThumbnailUrl, bookTitle, bookAuthors, bookPublishDate, bookPreviewLink, null));
             }
 
         } catch (JSONException e) {
