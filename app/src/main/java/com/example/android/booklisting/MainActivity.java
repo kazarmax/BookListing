@@ -2,13 +2,18 @@ package com.example.android.booklisting;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -23,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
     /** URL base for books data from the Google Books API */
     private static final String REQUEST_URL_BASE =
-            "https://www.googleapis.com/books/v1/volumes?maxResults=10&q=";
+            "https://www.googleapis.com/books/v1/volumes";
 
     /** Object for storing a list of Books loaded using Google Books API */
     private ArrayList<Book> bookList;
@@ -93,8 +98,36 @@ public class MainActivity extends AppCompatActivity {
                         String requestUrl = REQUEST_URL_BASE + query;
                         // Start displaying progress bar
                         mLoadProgressBar.setVisibility(View.VISIBLE);
+
+                        SharedPreferences sharePrefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                        String orderBy = sharePrefs.getString(
+                            getString(R.string.settings_order_by_key),
+                            getString(R.string.settings_order_by_default)
+                        );
+
+                        String maxNumOfBooks = sharePrefs.getString(
+                            getString(R.string.settings_maxresults_by_key),
+                            getString(R.string.settings_maxresults_default)
+                        );
+
+                        boolean showOnlyFreeEBooks = sharePrefs.getBoolean(
+                            getString(R.string.settings_only_free_ebooks_key), false);
+
+                        Uri baseUri = Uri.parse(REQUEST_URL_BASE);
+                        Uri.Builder uriBuilder = baseUri.buildUpon();
+
+                        uriBuilder.appendQueryParameter("q", query);
+                        uriBuilder.appendQueryParameter("maxResults", maxNumOfBooks);
+                        uriBuilder.appendQueryParameter("orderBy", orderBy);
+
+                        if (showOnlyFreeEBooks) {
+                            uriBuilder.appendQueryParameter("filter", "free-ebooks");
+                        }
+
+                        Log.i(LOG_TAG, "URL to fetch books data = " + uriBuilder.toString());
+
                         // Create AsyncTask to start loading books
-                        new BookLoadTask().execute(requestUrl);
+                        new BookLoadTask().execute(uriBuilder.toString());
                     }
                     return false;
                 }
@@ -113,6 +146,23 @@ public class MainActivity extends AppCompatActivity {
             // Update empty state with no connection error message
             mEmptyStateTextView.setText(R.string.no_internet);
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_settings) {
+            Intent settingsIntent = new Intent(this, SettingsActivity.class);
+            startActivity(settingsIntent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     /**

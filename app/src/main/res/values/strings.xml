@@ -4,4 +4,45 @@
     <string name="no_internet">No connection to the Internet.</string>
     <string name="search_view_hint">Enter search keywords (book title, etc.)</string>
     <string name="no_book_author">Unknown author</string>
+
+    <!-- Settings Menu Item [CHAR LIMIT=NONE] -->
+    <string name="settings_menu_item">Settings</string>
+
+    <!-- Settings Activity Title [CHAR LIMIT=NONE] -->
+    <string name="settings_title">Book Listing Settings</string>
+
+    <!-- Strings For Order-By Preference [CHAR LIMIT=30] -->
+    <string name="settings_order_by_label">Order by</string>
+    <string name="settings_order_by_key" translatable="false">orderBy</string>
+    <string name="settings_order_by_default" translatable="false">@string/settings_order_by_relevance_value</string>
+
+    <!-- Label for order-by relevance option [CHAR LIMIT=20] -->
+    <string name="settings_order_by_relevance_label">Relevance</string>
+    <string name="settings_order_by_relevance_value" translatable="false">relevance</string>
+
+    <!-- Label for order-by most recent option [CHAR LIMIT=20] -->
+    <string name="settings_order_by_most_recent_label">Most Recent</string>
+    <string name="settings_order_by_most_recent_value" translatable="false">newest</string>
+
+    <!-- Strings For MaxResults Preference [CHAR LIMIT=30] -->
+    <string name="settings_maxresults_label">Max number of books in the list</string>
+    <string name="settings_maxresults_by_key" translatable="false">maxResults</string>
+    <string name="settings_maxresults_default" translatable="false">@string/settings_maxresults_10_value</string>
+
+    <!-- Label for maxResults 10 option [CHAR LIMIT=20] -->
+    <string name="settings_maxresults_10_label">10</string>
+    <string name="settings_maxresults_10_value" translatable="false">10</string>
+
+    <!-- Label for maxResults 20 option [CHAR LIMIT=20] -->
+    <string name="settings_maxresults_20_label">20</string>
+    <string name="settings_maxresults_20_value" translatable="false">20</string>
+
+    <!-- Label for maxResults 30 option [CHAR LIMIT=20] -->
+    <string name="settings_maxresults_30_label">30</string>
+    <string name="settings_maxresults_30_value" translatable="false">30</string>
+
+    <!-- Strings For Only-free-ebooks Preference [CHAR LIMIT=30] -->
+    <string name="settings_only_free_ebooks_label">Show free eBooks only</string>
+    <string name="settings_only_free_ebooks_key" translatable="false">filter</string>
+
 </resources>
