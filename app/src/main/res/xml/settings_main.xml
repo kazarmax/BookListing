@@ -10,13 +10,6 @@
         android:key="@string/settings_order_by_key"
         android:title="@string/settings_order_by_label" />
 
-    <ListPreference
-        android:defaultValue="@string/settings_maxresults_default"
-        android:entries="@array/settings_max_results_labels"
-        android:entryValues="@array/settings_max_results_values"
-        android:key="@string/settings_maxresults_by_key"
-        android:title="@string/settings_maxresults_label" />
-
     <SwitchPreference
         android:defaultValue="false"
         android:title="@string/settings_only_free_ebooks_label"

@@ -27,8 +27,6 @@ public class SettingsActivity extends AppCompatActivity {
             Preference orderBy = findPreference(getString(R.string.settings_order_by_key));
             bindPreferenceSummaryToValue(orderBy);
 
-            Preference maxNumOfBooks = findPreference(getString(R.string.settings_maxresults_by_key));
-            bindPreferenceSummaryToValue(maxNumOfBooks);
         }
 
         @Override

@@ -152,33 +152,35 @@ public final class QueryUtils {
         try {
             // build up a list of Books objects with the corresponding data.
             JSONObject booksJSONRoot = new JSONObject(booksJSON);
-            JSONArray bookItems = booksJSONRoot.getJSONArray("items");
-            for (int i = 0; i < bookItems.length(); i++) {
-                JSONObject bookItem = bookItems.getJSONObject(i);
-                JSONObject bookItemVolumeInfo = bookItem.getJSONObject("volumeInfo");
-                String bookTitle = bookItemVolumeInfo.getString("title");
-                String bookAuthors = null;
-                JSONArray bookAuthorsArray = bookItemVolumeInfo.optJSONArray("authors");
-                if (bookAuthorsArray != null) {
-                    bookAuthors = "";
-                    for (int j = 0; j < bookAuthorsArray.length(); j++) {
-                        bookAuthors += bookAuthorsArray.getString(j);
-                        if (j < (bookAuthorsArray.length() - 1)) {
-                            bookAuthors += BOOK_AUTHORS_DELIMITER;
+            JSONArray bookItems = booksJSONRoot.optJSONArray("items");
+            if (bookItems != null) {
+                for (int i = 0; i < bookItems.length(); i++) {
+                    JSONObject bookItem = bookItems.getJSONObject(i);
+                    JSONObject bookItemVolumeInfo = bookItem.getJSONObject("volumeInfo");
+                    String bookTitle = bookItemVolumeInfo.getString("title");
+                    String bookAuthors = null;
+                    JSONArray bookAuthorsArray = bookItemVolumeInfo.optJSONArray("authors");
+                    if (bookAuthorsArray != null) {
+                        bookAuthors = "";
+                        for (int j = 0; j < bookAuthorsArray.length(); j++) {
+                            bookAuthors += bookAuthorsArray.getString(j);
+                            if (j < (bookAuthorsArray.length() - 1)) {
+                                bookAuthors += BOOK_AUTHORS_DELIMITER;
+                            }
                         }
                     }
-                }
-                String bookPublishDate = null;
-                if (bookItemVolumeInfo.has("publishedDate")) {
-                    bookPublishDate = bookItemVolumeInfo.getString("publishedDate");
-                }
-                String bookPreviewLink = bookItemVolumeInfo.getString("previewLink");
+                    String bookPublishDate = null;
+                    if (bookItemVolumeInfo.has("publishedDate")) {
+                        bookPublishDate = bookItemVolumeInfo.getString("publishedDate");
+                    }
+                    String bookPreviewLink = bookItemVolumeInfo.getString("previewLink");
 
-                String bookThumbnailUrl = null;
-                if (bookItemVolumeInfo.has("imageLinks")) {
-                    bookThumbnailUrl = bookItemVolumeInfo.getJSONObject("imageLinks").getString("thumbnail");
+                    String bookThumbnailUrl = null;
+                    if (bookItemVolumeInfo.has("imageLinks")) {
+                        bookThumbnailUrl = bookItemVolumeInfo.getJSONObject("imageLinks").getString("thumbnail");
+                    }
+                    books.add(new Book(bookThumbnailUrl, bookTitle, bookAuthors, bookPublishDate, bookPreviewLink, null));
                 }
-                books.add(new Book(bookThumbnailUrl, bookTitle, bookAuthors, bookPublishDate, bookPreviewLink, null));
             }
 
         } catch (JSONException e) {
